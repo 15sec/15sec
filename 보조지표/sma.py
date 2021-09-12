@@ -28,7 +28,7 @@ if __name__ == '__main__':
     cerebro.addstrategy(CrossStrategy)
     cerebro.broker.setcash(10000000)  # 초기자금 1000만원
     cerebro.broker.setcommission(commission=0.0014)  # 매수/매도시 나가므로 수수료 0.28의 절반
-    cerebro.addsizer(backtrader.sizers.PercentSizer, percents=49)
+    cerebro.addsizer(backtrader.sizers.PercentSizer, percents=49)  # 비중
     print('초기자금: {0:,.0f}원'.format(cerebro.broker.getvalue()))
     cerebro.run()
     print('최종자금: {0:,.0f}원'.format(cerebro.broker.getvalue()))
