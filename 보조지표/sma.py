@@ -9,7 +9,7 @@ class CrossStrategy(backtrader.Strategy):
     def __init__(self):
         sma1 = backtrader.ind.SMA(period=self.p.period1) # 5일 이동 평균선
         sma2 = backtrader.ind.SMA(period=self.p.period2) # 20일 이동 평균선
-        self.crossover = backtrader.ind.CrossOver(sma1, sma2)  # 골든 크로스
+        self.crossover = backtrader.ind.CrossOver(sma1, sma2)
 
     def next(self):
         if not self.position:
