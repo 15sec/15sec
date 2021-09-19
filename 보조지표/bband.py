@@ -2,36 +2,52 @@ from datetime import datetime
 import backtrader
 
 
-class CrossStrategy(backtrader.Strategy):
-
-    params = dict(period1=5, period2=20)
+class Bband(backtrader.Strategy):
+    params = dict(period=20, devfactor=2)
 
     def __init__(self):
-        sma1 = backtrader.ind.SMA(period=self.p.period1) # 5일 이동 평균선
-        sma2 = backtrader.ind.SMA(period=self.p.period2) # 20일 이동 평균선
-        self.crossover = backtrader.ind.CrossOver(sma1, sma2)  # 골든 크로스
+        self.order = None
+        self.band = backtrader.ind.BollingerBands(period=self.p.period, devfactor=self.p.devfactor)
 
     def next(self):
         if not self.position:
-            if self.crossover > 0:
+            if self.data.close < self.band.lines.bot:
                 self.buy()
-        elif self.crossover < 0:
-            self.close()
+        else:
+            if self.data.close > self.band.lines.top:
+                self.sell()
+
+    def notify_order(self, order):
+        if order.status in [order.Completed]:
+            if order.isbuy():
+                log_text = '매수 {0:,.0f}원 ({1:,.0f}주)'.format(order.executed.price, order.executed.size)
+                self.log(log_text)
+            else:
+                log_text = '매도 {0:,.0f}원 (자산: {1:,.0f}원)'.format(order.executed.price, cerebro.broker.getvalue())
+                self.log(log_text)
+            self.order = None
+        else:
+            self.order = None
+            return
+
+    def log(self, txt, dt=None):
+        dt = self.datas[0].datetime.date(0)
+        print('[{0}] {1}'.format(dt.isoformat(), txt))
 
 
 if __name__ == '__main__':
     cerebro = backtrader.Cerebro()
-    # 2011년 9월부터 2021년 9월까지 삼성전자 데이터
+
+    # 2018년 5월 4일(액면 분할 이후)부터 2021년 9월까지 삼성전자 데이터
     data = backtrader.feeds.YahooFinanceData(dataname='005930.KS',
-                                             fromdate=datetime(2011, 9, 1), todate=datetime(2021, 9, 1))
+                                             fromdate=datetime(2018, 5, 4), todate=datetime(2021, 9, 17))
     cerebro.adddata(data)
-    cerebro.addstrategy(CrossStrategy)
+    cerebro.addstrategy(Bband)
     cerebro.broker.setcash(10000000)  # 초기자금 1000만원
     cerebro.broker.setcommission(commission=0.0014)  # 매수/매도시 나가므로 수수료 0.28의 절반
-    cerebro.addsizer(backtrader.sizers.PercentSizer, percents=49)
-    print('초기자금: {0:,.0f}원'.format(cerebro.broker.getvalue()))
+    cerebro.addsizer(backtrader.sizers.PercentSizer, percents=49)  # 비중 49%
+    print('초기자산: {0:,.0f}원 (매수 비중: {1:,.0f}%)'.format(cerebro.broker.getvalue(), 49))
     cerebro.run()
-    print('최종자금: {0:,.0f}원'.format(cerebro.broker.getvalue()))
     percent = ((cerebro.broker.getvalue() / 10000000) - 1.0) * 100
-    print('수익률: {0:,.0f}%'.format(percent))
+    print('최종자산: {0:,.0f}원(수익률: {1:,.2f}%)'.format(cerebro.broker.getvalue(), percent))
     cerebro.plot(style='candlestick')
