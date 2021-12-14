@@ -38,9 +38,9 @@ class Ich(backtrader.Strategy):
 if __name__ == '__main__':
     cerebro = backtrader.Cerebro()
 
-    # 2018년 5월 4일(액면 분할 이후)부터 2021년 9월까지 삼성전자 데이터
+    # 2018년 5월 4일(액면 분할 이후)부터 2021년 12월까지 삼성전자 데이터
     data = backtrader.feeds.YahooFinanceData(dataname='005930.KS',
-                                             fromdate=datetime(2018, 5, 4), todate=datetime(2020, 9, 1))
+                                             fromdate=datetime(2018, 5, 4), todate=datetime(2021, 12, 1))
     cerebro.adddata(data)
     cerebro.addstrategy(Ich)
     cerebro.broker.setcash(10000000)  # 초기자금 1000만원
